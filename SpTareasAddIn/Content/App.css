@@ -1,0 +1,30 @@
+﻿#contenido {
+    display: none;
+}
+
+    #contenido fieldset {
+        width: 245px;
+    }
+
+.tablaTareasPendientes {
+    border-collapse: collapse;
+    color: orange;
+}
+
+    .tablaTareasPendientes, .tablaTareasPendientes td, .tablaTareasPendientes th {
+        border: 2px solid orange;
+    }
+
+
+.tablaTareasRealizadas {
+    border-collapse: collapse;
+    color: lime;
+}
+
+    .tablaTareasRealizadas, .tablaTareasRealizadas td, .tablaTareasRealizadas th {
+        border: 2px solid lime;
+    }
+
+        .tablaTareasRealizadas tbody tr td:nth-child(1) {
+            text-decoration: line-through;
+        }

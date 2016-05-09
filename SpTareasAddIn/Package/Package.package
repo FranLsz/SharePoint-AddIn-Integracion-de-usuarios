@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package dslVersion="1.0.0.0" 
+        Id="cccd4da6-1e81-4b31-bfea-d418bad81833" 
+        solutionId="cccd4da6-1e81-4b31-bfea-d418bad81833" 
+        xmlns="http://schemas.microsoft.com/VisualStudio/2008/SharePointTools/PackageModel" 
+        name="SpTareasAddIn"
+        sharePointProductVersion="16.0">
+  <features>
+        <featureReference itemId="efc38678-586c-4b6e-92a2-47f588b056ed" />
+  </features>
+</package>
