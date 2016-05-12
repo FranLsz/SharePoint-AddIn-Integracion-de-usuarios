@@ -100,6 +100,7 @@ function iniciarApp() {
             $(e).remove();
             $(e).children().eq(1).html("<input type='button' class='btnPendiente' value='Pendiente' /><input type='button' class='btnBorrar' value='Borrar' />");
             $("#tareasRealizadas").append(e);
+            aplicarPermisos();
         });
     }
 
@@ -115,6 +116,7 @@ function iniciarApp() {
             $(e).remove();
             $(e).children().eq(1).html("<input type='button' class='btnRealizada' value='Realizada' /><input type='button' class='btnBorrar' value='Borrar' />");
             $("#tareasPendientes").append(e);
+            aplicarPermisos();
         });
     }
 
