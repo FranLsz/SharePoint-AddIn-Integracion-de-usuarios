@@ -1,27 +1,18 @@
 ﻿'use strict';
+ExecuteOrDelayUntilScriptLoaded(iniciarApp, "sp.js");
 
-ExecuteOrDelayUntilScriptLoaded(initializePage, "sp.js");
 
-function initializePage() {
-
+function iniciarApp() {
     var grupo;
-    var tareasPendientes;
-    var tareasRealizadas;
-
     var contexto = new SP.ClientContext.get_current();
     var web = contexto.get_web();
-
     var usuario = contexto.get_web().get_currentUser();
 
     contexto.load(usuario);
-    contexto.executeQueryAsync(onSuccess, onError);
+    contexto.executeQueryAsync(onSuccess);
 
-    function onSuccess(sender, args) {
+    function onSuccess() {
         tienePermisos();
-
-    }
-    function onError(sender, args) {
-        console.log("Error al cargar usuario");
     }
 
     function tienePermisos() {
@@ -46,12 +37,24 @@ function initializePage() {
                     });
                 });
             }
-
         });
     }
 
+    function procesarTareas(tareas) {
+        $.each(tareas,
+            function (i, tarea) {
+
+                if (tarea.Pendiente)
+                    $("#tareasPendientes").append("<tr data-tareaid='" + tarea.ID + "'><td>" + tarea.Nombre + "</td><td><input type='button' class='btnRealizada' value='Realizada' /><input type='button' class='btnBorrar' value='Borrar' /></td></tr>");
+                else
+                    $("#tareasRealizadas").append("<tr data-tareaid='" + tarea.ID + "'><td>" + tarea.Nombre + "</td><td><input type='button' class='btnPendiente' value='Pendiente' /><input type='button' class='btnBorrar' value='Borrar' /></td></tr>");
+            });
+
+        aplicarPermisos();
+    }
+
     function aplicarPermisos() {
-       
+
         $("#titulo").text("Iniciada sesión como " + usuario.get_title() + " (" + grupo + ") ");
 
         if (grupo !== "Profesores") {
@@ -66,42 +69,66 @@ function initializePage() {
         $(".cargando").hide();
         $("#contenido").show();
 
-        
-    }
 
-    function procesarTareas(tareas) {
-        $.each(tareas,
-            function (i, tarea) {
-                console.log(tarea);
-
-                if (tarea.Pendiente)
-                    $("#tareasPendientes").append("<tr><td>" + tarea.Nombre + "</td><td><input type='button' value='Realizada' /><input type='button' class='btnBorrar' value='Borrar' /></td></tr>");
-                else
-                    $("#tareasRealizadas").append("<tr><td>" + tarea.Nombre + "</td><td><input type='button' value='Pendiente' /><input type='button' class='btnBorrar' value='Borrar' /></td></tr>");
-            });
-
-        aplicarPermisos();
     }
 
     function nuevaTarea() {
+        if ($("#txtNuevaTarea").val() === "")
+            return;
+
         var obj = {
             '__metadata': { 'type': 'SP.Data.TareasListItem' },
             'Nombre': $("#txtNuevaTarea").val(),
             'Pendiente': true
         };
-        console.log(obj);
 
-        realizarPeticionAjax("POST",
-            obj,
-            function (res) {
-                console.log(res);
-            });
+        realizarPeticionAjax("POST", obj, function (res) {
+            $("#txtNuevaTarea").val("");
+            $("#tareasPendientes").append("<tr data-tareaid='" + res.ID + "'><td>" + res.Nombre + "</td><td><input type='button' class='btnRealizada' value='Realizada' /><input type='button' class='btnBorrar' value='Borrar' /></td></tr>");
+        });
+    }
+
+    function realizarTarea(evt) {
+        var id = $(evt.target).closest('tr').attr("data-tareaid");
+        var datos = {
+            "__metadata": { "type": "SP.Data.TareasListItem" },
+            "Pendiente": false,
+            "ID": id
+        }
+        realizarPeticionAjax("PUT", datos, function (res) {
+            var e = evt.target.closest('tr');
+            $(e).remove();
+            $(e).children().eq(1).html("<input type='button' class='btnPendiente' value='Pendiente' /><input type='button' class='btnBorrar' value='Borrar' />");
+            $("#tareasRealizadas").append(e);
+        });
+    }
+
+    function hacerPendienteTarea(evt) {
+        var id = $(evt.target).closest('tr').attr("data-tareaid");
+        var datos = {
+            "__metadata": { "type": "SP.Data.TareasListItem" },
+            "Pendiente": true,
+            "ID": id
+        }
+        realizarPeticionAjax("PUT", datos, function (res) {
+            var e = evt.target.closest('tr');
+            $(e).remove();
+            $(e).children().eq(1).html("<input type='button' class='btnRealizada' value='Realizada' /><input type='button' class='btnBorrar' value='Borrar' />");
+            $("#tareasPendientes").append(e);
+        });
+    }
+
+    function borrarTarea(evt) {
+        var id = $(evt.target).closest('tr').attr("data-tareaid");
+        realizarPeticionAjax("DELETE", id, function () {
+            $(evt.target).closest('tr').remove();
+        });
     }
 
     function realizarPeticionAjax(verbo, datos, callback) {
         var url = _spPageContextInfo.webServerRelativeUrl + "/_api/web/lists/getByTitle('Tareas')";
-        var headers;
-        var httpVerb;
+        var headers = null;
+        var httpVerb = null;
         var httpData = JSON.stringify(datos);
         var digest = document.getElementById('__REQUESTDIGEST').value;
         switch (verbo) {
@@ -151,13 +178,16 @@ function initializePage() {
             headers: headers,
             data: httpData,
             success: function (data) {
-                console.log(data);
-                if (typeof (data.d.results) != "undefined")
-                    callback(data.d.results);
-                else if (typeof (data.d.Nombre) != "undefined")
-                    callback(data.d);
-                else
-                    callback("OK");
+                if (typeof (data) != "undefined") {
+                    if (typeof (data.d) != "undefined") {
+                        if (typeof (data.d.results) != "undefined")
+                            callback(data.d.results);
+                        else if (typeof (data.d.Nombre) != "undefined")
+                            callback(data.d);
+                    } else
+                        callback("Updated/Deleted");
+                } else
+                    callback("Updated/Deleted");
             },
             error: function (err) {
                 console.log("Error con Tareas");
@@ -196,9 +226,12 @@ function initializePage() {
         }
     }
 
-
-    $(document)
-        .ready(function () {
-            $("#btnNuevaTarea").on("click", nuevaTarea);
-        });
+    $(document).ready(function () {
+        $("#btnNuevaTarea").on("click", nuevaTarea);
+        $(document).on("click", ".btnBorrar", borrarTarea);
+        $(document).on("click", ".btnRealizada", realizarTarea);
+        $(document).on("click", ".btnPendiente", hacerPendienteTarea);
+    });
 }
+
+

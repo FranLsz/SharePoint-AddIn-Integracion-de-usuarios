@@ -56,13 +56,6 @@
                     </tr>
                 </thead>
                 <tbody id="tareasPendientes">
-                    <tr>
-                        <td>Holasfasf afs asfas f as</td>
-                        <td>
-                            <input type="button" value="Realizada" />
-                            <input type="button" class="btnBorrar" value="Borrar" />
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -80,13 +73,6 @@
                     </tr>
                 </thead>
                 <tbody id="tareasRealizadas">
-                    <tr>
-                        <td>Holasfasf afs asfas f as</td>
-                        <td>
-                            <input type="button" value="Pendiente" />
-                            <input type="button" class="btnBorrar" value="Borrar" />
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
